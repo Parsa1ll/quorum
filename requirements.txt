@@ -1,0 +1,7 @@
+# Apple Silicon, Python 3.9+. Tested with mlx/mlx-lm 0.18.
+mlx>=0.18
+mlx-lm>=0.18
+numpy
+datasets        # GSM8K
+matplotlib      # plots
+streamlit       # demo dashboard (streamlit run app.py)
