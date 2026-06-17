@@ -58,9 +58,9 @@ streamlit run app.py                              # interactive allocator demo (
 ## Demo
 
 A one-page write-up with an interactive version of the allocator is in `docs/`,
-served with GitHub Pages. The widget recomputes the strategy in the browser from
-the cached pool, so the numbers match the study exactly. `app.py` is the fuller
-local version (tables, error bars, robustness) and needs `streamlit run`.
+deployed as a static site on Vercel. The widget recomputes the strategy in the
+browser from the cached pool, so the numbers match the study exactly. `app.py` is
+the fuller local version (tables, error bars, robustness) and needs `streamlit run`.
 
 ## Layout
 
@@ -82,7 +82,7 @@ eval/
 scripts/
   smoke_test.py   one-question sanity check
 app.py            streamlit demo of the allocator (local)
-docs/             one-page static site for GitHub Pages
+docs/             one-page static site (deployed on Vercel)
 results/          tables, plots, and the generation cache (kept in the repo)
 ```
 
