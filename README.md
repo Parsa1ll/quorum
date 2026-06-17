@@ -4,6 +4,8 @@ Quorum is a small study of how a 1.5B reasoning model should spend extra compute
 when it answers, run start to finish on a MacBook with Apple MLX. No cluster, no
 API. I built it to learn how this actually works by measuring it myself.
 
+**Live demo and write-up: [quorum-ml.vercel.app](https://quorum-ml.vercel.app/)**
+
 A 1.5B model will not top any leaderboard, so this is not about raw accuracy. It is
 about efficiency: sampling more answers or thinking longer both cost compute, so
 which one actually buys accuracy, and where does it stop paying off?
