@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quorum: test-time compute on a MacBook</title>
+<meta name="description" content="A plain-language study of how a small AI model should spend extra computing power when it answers, measured on a laptop.">
+<link rel="icon" type="image/png" href="favico.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top"><img class="brand-mark" src="favico.png" alt="">Quorum</a>
+    <div class="nav-links">
+      <a href="#why">Why</a>
+      <a href="#start">Start here</a>
+      <a href="#how">The idea</a>
+      <a href="#allocator">Demo</a>
+      <a href="#findings">Findings</a>
+      <a href="#author">About</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+  <header class="hero">
+    <p class="eyebrow">Quorum · a small on-device study</p>
+    <h1>How should a small model spend its thinking?</h1>
+    <p class="lede">
+      An AI model can often get a better answer if you let it do more work: ask it
+      the same question a few times, or let it think for longer. Both cost computing
+      power. I wanted to know where that extra work actually helps and where it just
+      burns time, so I measured it on a normal laptop. No data center, no paid API.
+    </p>
+    <div class="hero-metrics">
+      <div class="hm"><div class="hm-num">+17<span>pts</span></div><div class="hm-lbl">more answers right when it samples a few times instead of once</div></div>
+      <div class="hm"><div class="hm-num">~⅓</div><div class="hm-lbl">the work for the same accuracy, spent only where it's needed</div></div>
+      <div class="hm"><div class="hm-num">~512<span>tok</span></div><div class="hm-lbl">where extra thinking stops helping</div></div>
+      <div class="hm"><div class="hm-num">16<span>GB</span></div><div class="hm-lbl">one MacBook, nothing in the cloud</div></div>
+    </div>
+    <div class="actions">
+      <a class="btn primary" id="repo-link" href="https://github.com/Parsa1ll/quorum">See the code</a>
+      <a class="btn" href="#start">New to this? Start here</a>
+    </div>
+  </header>
+
+  <section id="why">
+    <p class="kicker">Why I built this</p>
+    <h2>I wanted to see it for myself</h2>
+    <p>
+      I'm a student, and I built this to understand it firsthand instead of taking it
+      on faith. People kept saying you can make a small model answer better by giving
+      it more compute when it responds, and that past a point more thinking stops
+      helping. It sounded right, but I had not actually seen it, so I ran it on the
+      laptop I already own and measured it. No cluster, no budget.
+    </p>
+    <p>
+      Everything here is what I found, including the parts where my own idea was not the
+      best one. I tried to be honest about what the numbers do and do not show, because
+      the point was to learn from it, not to win.
+    </p>
+  </section>
+
+  <section id="start">
+    <p class="kicker">Start here</p>
+    <h2>The 60-second version, in plain words</h2>
+    <p>
+      If this is all new to you, here is everything you need to follow the rest of the
+      page. No background needed.
+    </p>
+    <div class="defs">
+      <div class="def">
+        <div class="def-t">Reasoning model</div>
+        <p>An AI that writes out its steps before giving a final answer, the way you
+          show your work on a math problem. The one I used is small (1.5 billion
+          settings inside it), small enough to run on a laptop.</p>
+      </div>
+      <div class="def">
+        <div class="def-t">Greedy vs. sampling</div>
+        <p>"Greedy" means ask once and take the single most likely answer. "Sampling"
+          means ask a few times with a bit of randomness, so you get a few different
+          tries at the same question.</p>
+      </div>
+      <div class="def">
+        <div class="def-t">Self-consistency</div>
+        <p>Sample a few answers, then keep the one that shows up most often, like a
+          vote. More votes usually means more right answers, but also more work. This
+          is the well-known trick the project builds on.</p>
+      </div>
+      <div class="def">
+        <div class="def-t">Test-time compute</div>
+        <p>The fancy name for spending extra work when the model answers (more samples,
+          or longer thinking) to get a better answer, without retraining it. Using that
+          work well is the whole question here.</p>
+      </div>
+      <div class="def">
+        <div class="def-t">GSM8K</div>
+        <p>A standard set of grade-school math word problems people use to test
+          reasoning. Each has one correct number, so a computer can check the answers.</p>
+      </div>
+      <div class="def">
+        <div class="def-t">Overthinking</div>
+        <p>Making the model think for a set number of tokens (a token is a chunk of
+          text, about a word) and changing that number. "Overthinking" is the point
+          where letting it go longer stops making the answer any better.</p>
+      </div>
+    </div>
+    <p class="takeaway">
+      The whole study is one question: a small model can spend more work to do better,
+      so <strong>how do you spend it without wasting it?</strong>
+    </p>
+  </section>
+
+  <section id="how">
+    <p class="kicker">The idea</p>
+    <h2>Spend more only on the questions that need it</h2>
+    <p>
+      Easy questions get the same answer after two or three tries. Hard ones come back
+      different every time. So instead of giving every question the same budget, the
+      method takes a few samples, checks how much they agree, and only keeps going when
+      they disagree. How much the early answers agree is a free hint for "this one is
+      hard."
+    </p>
+    <div class="flow">
+      <div class="step"><span class="step-n">1</span><div class="step-b">Take 4 samples</div></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><span class="step-n">2</span><div class="step-b">Do they agree?</div></div>
+      <div class="arrow">&rarr;</div>
+      <div class="step branch">
+        <div class="step-b ok-b">Agree · stop at 4 (cheap)</div>
+        <div class="step-b no-b">Disagree · take up to 16</div>
+      </div>
+      <div class="arrow">&rarr;</div>
+      <div class="step"><span class="step-n">3</span><div class="step-b">Take the vote</div></div>
+    </div>
+    <p class="muted-note">
+      Every method below reads the exact same set of pre-made samples, so any
+      difference in accuracy comes from how the work is spent, not from one method
+      getting luckier draws than another.
+    </p>
+  </section>
+
+  <section id="findings">
+    <p class="kicker">Findings</p>
+    <h2>Four results, and what each one means</h2>
+    <div class="cards">
+      <article class="card">
+        <div class="card-n">01</div>
+        <h3>Sampling helps a lot, fast</h3>
+        <p>Answering once gets 68% right. Voting over several answers gets about 85%, a
+          17-point jump. But voting over 16 is no better than over 8, so the help shows
+          up early and then levels off.</p>
+        <p class="card-take">Means: more samples help, but only up to a point.</p>
+      </article>
+      <article class="card">
+        <div class="card-n">02</div>
+        <h3>Being picky gets there for less</h3>
+        <p>Instead of taking 16 samples on every question, take a few and only keep going
+          on the ones where the answers disagree. You end up just as accurate, using
+          about a third of the samples.</p>
+        <p class="card-take">Means: same accuracy, most of the cost cut.</p>
+      </article>
+      <article class="card">
+        <div class="card-n">03</div>
+        <h3>Longer thinking levels off</h3>
+        <p>Accuracy climbs fast as the model is allowed to think up to about 512 tokens,
+          then flattens. Four times that budget buys only six more points.</p>
+        <p class="card-take">Means: past a point, more thinking is wasted work.</p>
+      </article>
+      <article class="card">
+        <div class="card-n">04</div>
+        <h3>Stopping early is safe</h3>
+        <p>When the first 4 answers all agree, the final answer is right about 90% of the
+          time. So stopping there to save work almost never costs you the right answer,
+          which is exactly what makes the picky method safe.</p>
+        <p class="card-take">Means: you can stop early on the easy ones without losing accuracy.</p>
+      </article>
+    </div>
+    <div class="stat-row" id="fixed-stats"></div>
+  </section>
+
+  <section id="allocator">
+    <p class="kicker">Try it yourself</p>
+    <h2>Watch it spend the work, question by question</h2>
+    <p>
+      Each square below is one question. The number on it is how many samples that
+      question got; green means the final answer was right, red means wrong. Drag the
+      slider: a low setting makes it stop early on more questions (cheaper), a high
+      setting makes it cautious and take more samples (more expensive). The numbers
+      update live, worked out in your browser from the real data.
+    </p>
+
+    <div class="controls">
+      <label for="threshold">How much the early answers must agree before it stops <span class="hint">(higher means more cautious)</span></label>
+      <input type="range" id="threshold" min="0.5" max="1" step="0.05" value="0.6">
+      <output id="threshold-val">0.60</output>
+    </div>
+
+    <div class="metrics" id="live-metrics"></div>
+
+    <div class="panel">
+      <p class="panel-label">One square per question · number = samples spent · green right, red wrong · hover for detail</p>
+      <div class="tiles" id="tiles"></div>
+    </div>
+
+    <div class="panel">
+      <p class="panel-label">Where the picky method (blue star) lands against the simple ones (grey dots). Up and to the left is better: more accuracy, fewer samples.</p>
+      <svg id="scatter" viewBox="0 0 600 320" role="img" aria-label="accuracy vs samples"></svg>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">Being honest</p>
+    <h2>Did my rule win? No, and that's the point</h2>
+    <p>
+      There is more than one way to decide when the early answers agree enough to stop.
+      I wrote a simple one. There is also a known method from a 2023 paper (a stats-based
+      rule from Adaptive-Consistency by Aggarwal et al.). I tested both against always
+      taking 16 samples, and both reached the same accuracy for a fraction of the work.
+      That is the result that matters. The known rule gets there on a little less work
+      than mine, so I am saying that plainly instead of pretending my version won.
+    </p>
+    <p>
+      Two more things worth saying out loud. Matching the accuracy of "always take 16"
+      is partly built in: any question whose first few answers already agree gets sent
+      to the same vote, so equal accuracy is close to automatic. The real claim is the
+      saving, not the accuracy. And to make sure the saving isn't just a fluke of these
+      exact 50 questions, I set the rule up on one half of them and then tested it on the
+      other half it had never seen. It still used about 37% of the samples.
+    </p>
+    <div class="rules" id="rules"></div>
+    <p class="muted-note">All three reach the same accuracy. What changes is how many
+      samples they spend to get there, and fewer is better.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Overthinking</p>
+    <h2>More thinking stops helping before the model stops</h2>
+    <p>
+      Here I make the model think for a set number of tokens, then force it to answer,
+      and I try a whole range of limits. Accuracy rises fast at first, then flattens
+      around 512 tokens. After that, letting it think longer barely changes the
+      answer. At this size it does not clearly get worse, it just stops paying off.
+    </p>
+    <div class="panel">
+      <p class="panel-label">Accuracy vs. how long the model is allowed to think (in tokens)</p>
+      <svg id="overthinking" viewBox="0 0 600 320" role="img" aria-label="accuracy vs thinking length"></svg>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">Does the trick really work?</p>
+    <h2>Is "the answers agree" a real signal, or luck?</h2>
+    <p>
+      The method bets that when the early answers agree, the question is easy and the
+      answer is right. Does that bet hold? Partly, and I want to be careful about it.
+    </p>
+    <p>
+      The dependable part: when the first 4 answers fully agree, the final answer is
+      right about 90% of the time. That is what the method actually relies on when it
+      stops early, and it is solid.
+    </p>
+    <p>
+      The part I will not oversell: if you measure the general link between how much the
+      early answers agree and whether the answer is right, it comes out weak (a
+      correlation of 0.18, with a range of -0.06 to 0.52 that includes zero). At only 50
+      questions, that is too shaky to call a real effect, so I do not lean on it. Two
+      quick side notes: running low on thinking room barely predicts anything on its own
+      (-0.04), so agreement is not just flagging long questions; and on the cleaner half
+      of the questions the link looks stronger (0.64), but that is a small,
+      after-the-fact slice, so I treat it as a hint, not proof.
+    </p>
+  </section>
+
+  <section id="artifacts">
+    <p class="kicker">The files</p>
+    <h2>Code and full write-up</h2>
+    <div class="links">
+      <a class="link-card" id="repo-link-2" href="https://github.com/Parsa1ll/quorum">
+        <span class="link-t">Repository</span><span class="link-s">all the code, results, and the saved runs</span></a>
+      <a class="link-card" id="results-link" href="https://github.com/Parsa1ll/quorum/blob/main/RESULTS.md">
+        <span class="link-t">Full results</span><span class="link-s">every number, with error bars and caveats</span></a>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">What this is not</p>
+    <h2>Honest limits</h2>
+    <ul class="limits">
+      <li><strong>It's small.</strong> 50 questions. The sampling and picky-method
+        results are averaged over three runs; the rest are from one run. Treat small
+        differences as noise.</li>
+      <li><strong>One test set.</strong> The point where thinking levels off is specific
+        to GSM8K. Harder problems would likely move it, and could turn "stops helping"
+        into "actively hurts."</li>
+      <li><strong>A small model.</strong> A 1.5B model will not top any leaderboard. The
+        point is spending work well, not raw accuracy.</li>
+    </ul>
+  </section>
+
+  <section id="author">
+    <div class="author">
+      <img class="avatar" src="https://avatars.githubusercontent.com/u/108203017?v=4" alt="Parsa Ahmadnezhad">
+      <div class="author-text">
+        <h2 class="author-name">Parsa Ahmadnezhad</h2>
+        <p class="author-role">Mathematics + Machine Learning @ University of Waterloo · 2030</p>
+        <p class="author-bio">
+          I built and ran this on my own Mac to figure out where spending more work at
+          answer-time actually pays off on a small reasoning model, and where it just
+          burns tokens. I did it mainly to understand how it works.
+        </p>
+        <div class="author-links">
+          <a href="mailto:parsa.ahmadnezhad@uwaterloo.ca">Email</a>
+          <a href="https://www.linkedin.com/in/parsa-ahmadnezhad/">LinkedIn</a>
+          <a href="https://github.com/Parsa1ll">GitHub</a>
+          <a href="https://parsaa.ca">Website</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Builds on: Wang et al., <em>Self-Consistency</em> (2022) ·
+      Aggarwal et al., <em>Adaptive-Consistency</em> (EMNLP 2023) ·
+      Muennighoff et al., <em>s1: Simple Test-Time Scaling</em> (2025).
+    </p>
+    <p>Built and run on a personal Mac. MIT licensed. Code on
+      <a id="footer-repo" href="https://github.com/Parsa1ll/quorum">GitHub</a>.</p>
+  </footer>
+
+</main>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
