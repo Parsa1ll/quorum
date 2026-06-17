@@ -1,0 +1,46 @@
+{
+  "n": 50,
+  "accuracy_ci": {
+    "greedy": [
+      0.68,
+      0.54,
+      0.8
+    ],
+    "sc@8": [
+      0.88,
+      0.78,
+      0.96
+    ],
+    "sc@16": [
+      0.86,
+      0.76,
+      0.94
+    ],
+    "adaptive(t=0.6)": [
+      0.86,
+      0.76,
+      0.94
+    ]
+  },
+  "sc8_minus_sc16": {
+    "diff": 0.02,
+    "ci": [
+      0.0,
+      0.06
+    ],
+    "significant": false
+  },
+  "truncation_confound": {
+    "mean_truncation": 0.26875,
+    "r_agreement_correct_all": 0.18396273982089048,
+    "r_agreement_correct_all_ci": [
+      -0.059424518318324994,
+      0.5163310560864384
+    ],
+    "r_agreement_correct_all_significant": false,
+    "r_agreement_correct_low_trunc": 0.6437716110754631,
+    "r_truncation_correct": -0.03568927616810348,
+    "n_low_trunc": 27,
+    "label": "majority vote over held-out samples [4:16]"
+  }
+}

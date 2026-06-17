@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "model": "mlx-community/DeepSeek-R1-Distill-Qwen-1.5B",
+    "seed": 0,
+    "max_tokens": 1024,
+    "k": 16,
+    "n_problems": 50
+  },
+  "runs": [
+    {
+      "strategy": "greedy",
+      "accuracy": 0.68,
+      "avg_samples": 1.0,
+      "avg_tokens": 603.5,
+      "n_problems": 50
+    },
+    {
+      "strategy": "sc@8",
+      "accuracy": 0.88,
+      "avg_samples": 8.0,
+      "avg_tokens": 4965.62,
+      "n_problems": 50
+    },
+    {
+      "strategy": "sc@16",
+      "accuracy": 0.86,
+      "avg_samples": 16.0,
+      "avg_tokens": 10159.42,
+      "n_problems": 50
+    },
+    {
+      "strategy": "adaptive(t=0.6)",
+      "accuracy": 0.86,
+      "avg_samples": 6.16,
+      "avg_tokens": 4100.98,
+      "n_problems": 50
+    },
+    {
+      "strategy": "adaptive(t=0.7)",
+      "accuracy": 0.86,
+      "avg_samples": 6.4,
+      "avg_tokens": 4197.78,
+      "n_problems": 50
+    },
+    {
+      "strategy": "adaptive(t=0.8)",
+      "accuracy": 0.86,
+      "avg_samples": 6.88,
+      "avg_tokens": 4434.94,
+      "n_problems": 50
+    },
+    {
+      "strategy": "adaptive(t=0.9)",
+      "accuracy": 0.86,
+      "avg_samples": 6.88,
+      "avg_tokens": 4434.94,
+      "n_problems": 50
+    },
+    {
+      "strategy": "adaptive(t=1.0)",
+      "accuracy": 0.86,
+      "avg_samples": 6.88,
+      "avg_tokens": 4434.94,
+      "n_problems": 50
+    }
+  ],
+  "diagnostics": {
+    "finished": 585,
+    "truncated": 215,
+    "finished_but_no_answer": 0
+  },
+  "headline": {
+    "matched": true,
+    "point": "adaptive(t=0.6)",
+    "adaptive_acc": 0.86,
+    "sc16_acc": 0.86,
+    "pct_of_samples": 38.5,
+    "summary": "adaptive(t=0.6) reaches 0.860 acc vs sc@16 0.860 using 38% of the samples (6.2 vs 16.0)."
+  },
+  "headline_heldout": {
+    "matched_on_tune": true,
+    "picked_threshold": 0.6,
+    "tune_n": 25,
+    "report_n": 25,
+    "report_adaptive_acc": 0.96,
+    "report_adaptive_samples": 5.92,
+    "report_sc16_acc": 0.96,
+    "report_sc16_samples": 16.0,
+    "pct_of_samples": 37.0,
+    "summary": "tuned t=0.6 on first 25 problems, reported on held-out 25: adaptive 0.960 @ 5.9 samples vs sc@16 0.960 @ 16.0 (37% of samples)."
+  }
+}

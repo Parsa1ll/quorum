@@ -1,0 +1,2 @@
+- Cheapest route to sc@16 accuracy (0.860): adaptive(t=0.6) at ~4101 tokens vs sc@16's 10159 -> 2.5x fewer tokens. (In-sample: this picks the cheapest point on the same 50 problems, so it is optimistic; see the held-out figure in RESULTS.md, ~37% of the samples.)
+- Axis tradeoff: parallel sampling has the higher ceiling (sc@8 0.880) vs single-chain budget forcing peak 0.820 (+0.060 for sampling), but budget forcing reaches its peak at ~673 tokens, 7x fewer than sc@8's 4966.

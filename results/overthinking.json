@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "model": "mlx-community/DeepSeek-R1-Distill-Qwen-1.5B",
+    "seed": 0,
+    "n_problems": 50,
+    "budgets": [
+      128,
+      256,
+      384,
+      512,
+      768,
+      1024,
+      1536,
+      2048
+    ]
+  },
+  "curve": [
+    {
+      "budget": 128,
+      "accuracy": 0.28,
+      "avg_tokens": 137.12,
+      "answered": 1.0
+    },
+    {
+      "budget": 256,
+      "accuracy": 0.46,
+      "avg_tokens": 263.94,
+      "answered": 1.0
+    },
+    {
+      "budget": 384,
+      "accuracy": 0.66,
+      "avg_tokens": 375.5,
+      "answered": 1.0
+    },
+    {
+      "budget": 512,
+      "accuracy": 0.76,
+      "avg_tokens": 447.96,
+      "answered": 1.0
+    },
+    {
+      "budget": 768,
+      "accuracy": 0.76,
+      "avg_tokens": 532.98,
+      "answered": 1.0
+    },
+    {
+      "budget": 1024,
+      "accuracy": 0.8,
+      "avg_tokens": 604.94,
+      "answered": 1.0
+    },
+    {
+      "budget": 1536,
+      "accuracy": 0.82,
+      "avg_tokens": 672.96,
+      "answered": 1.0
+    },
+    {
+      "budget": 2048,
+      "accuracy": 0.82,
+      "avg_tokens": 705.16,
+      "answered": 1.0
+    }
+  ],
+  "peak": {
+    "budget": 1536,
+    "accuracy": 0.82,
+    "avg_tokens": 672.96,
+    "answered": 1.0
+  }
+}
